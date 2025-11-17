@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Users</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background: #f0f6ff">
+
+<div class="container mt-5">
+
+    <h2 class="text-center mb-4 fw-bold">User Management</h2>
+
+    <table class="table table-bordered table-hover shadow-sm bg-white">
+        <thead class="table-primary">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+			<tr th:each="u : ${users}">
+			    <td th:text="${u.id}"></td>
+			    <td th:text="${u.name}"></td>
+			    <td th:text="${u.email}"></td>
+			    <td th:text="${u.role}"></td>
+			    <td>
+			        <span th:if="${u.enabled}">Enabled</span>
+			        <span th:if="${!u.enabled}" class="text-danger">Disabled</span>
+			    </td>
+			    <td>
+			        <a th:href="@{'/admin/enable/' + ${u.id}}"
+			           th:if="${!u.enabled}"
+			           class="btn btn-success btn-sm">Enable</a>
+
+			        <a th:href="@{'/admin/disable/' + ${u.id}}"
+			           th:if="${u.enabled}"
+			           class="btn btn-danger btn-sm">Disable</a>
+			    </td>
+			</tr>
+        </tbody>
+    </table>
+
+    <div class="text-end">
+        <a href="/admin/dashboard" class="btn btn-secondary">Back</a>
+    </div>
+
+</div>
+
+</body>
+</html>
+

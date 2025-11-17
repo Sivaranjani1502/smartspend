@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>SmartSpend | My Expenses</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #a1c4fd, #c2e9fb, #e0c3fc, #fbc2eb);
+      overflow: hidden;
+    }
+
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 20s infinite ease-in-out;
+      z-index: 0;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-50px) translateX(30px); }
+      100% { transform: translateY(0) translateX(0); }
+    }
+
+    .circle:nth-child(1) { width: 120px; height: 120px; background: #ff9a9e; top: 10%; left: 5%; animation-duration: 25s; }
+    .circle:nth-child(2) { width: 80px; height: 80px; background: #fad0c4; top: 40%; left: 70%; animation-duration: 18s; }
+    .circle:nth-child(3) { width: 100px; height: 100px; background: #fbc2eb; top: 70%; left: 30%; animation-duration: 22s; }
+
+    .content-wrapper { flex: 1; position: relative; z-index: 1; }
+
+    footer.footer { text-align: center; padding: 15px 0; background-color: rgba(0,0,0,0.7); color: #fff; margin-top: auto; z-index: 1; }
+
+    nav.navbar { background-color: rgba(0,0,0,0.6); z-index: 2; }
+    .navbar-brand { font-weight: bold; color: #fff !important; }
+    .navbar-nav .nav-link {
+      background-color: #357ab7; color: #fff !important;
+      padding: 6px 12px; border-radius: 6px; margin-left: 10px;
+      font-weight: 600; transition: all 0.3s ease; border: 1px solid #2a5d9e;
+    }
+    .navbar-nav .nav-link:hover { background-color: #235a9c; transform: translateY(-2px); }
+
+    .card { box-shadow: 0 8px 20px rgba(0,0,0,0.2); border-radius: 10px; background-color: rgba(255, 255, 255, 0.95); position: relative; z-index: 1; }
+    table th, table td { vertical-align: middle !important; }
+    h3 { font-weight: bold; color: #333; }
+
+    .filter-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+    .filter-container select, .filter-container input { flex: 1; }
+  </style>
+</head>
+<body>
+
+<div class="circle"></div>
+<div class="circle"></div>
+<div class="circle"></div>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="/">SmartSpend</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/expenses/new">Add Expense</a></li>
+        <li class="nav-item"><a class="btn btn-danger" th:href="@{/logout}">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="content-wrapper">
+  <div class="container mt-5">
+    <div class="card p-4">
+      <h3 class="mb-4 text-center">My Expenses</h3>
+
+      <!-- Filter -->
+	  <form th:action="@{/expenses}" method="get" class="filter-container">
+	    <select name="category" class="form-select rounded-pill">
+	      <option value="">All Categories</option>
+	      <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}" th:selected="${cat == selectedCategory}"></option>
+	    </select>
+
+	    <select name="type" class="form-select rounded-pill">
+	      <option value="">All Types</option>
+	      <option value="expense" th:selected="${selectedType == 'expense'}">Expense</option>
+	      <option value="income" th:selected="${selectedType == 'income'}">Income</option>
+	    </select>
+
+	    <input type="date" name="startDate" class="form-control rounded-pill" th:value="${selectedStart}">
+	    <input type="date" name="endDate" class="form-control rounded-pill" th:value="${selectedEnd}">
+
+	    <input type="number" name="minAmount" step="0.01" class="form-control rounded-pill" th:value="${selectedMin}" placeholder="Min">
+	    <input type="number" name="maxAmount" step="0.01" class="form-control rounded-pill" th:value="${selectedMax}" placeholder="Max">
+
+	    <input type="text" name="search" class="form-control rounded-pill" th:value="${search}" placeholder="Search title">
+
+	    <button type="submit" class="btn btn-primary rounded-pill">Filter</button>
+
+	    <!-- Export links -->
+	    <a th:href="@{/expenses/export/excel(startDate=${selectedStart},endDate=${selectedEnd},category=${selectedCategory},type=${selectedType},search=${search})}" class="btn btn-outline-success">Export Excel</a>
+	    <a th:href="@{/expenses/export/pdf(startDate=${selectedStart},endDate=${selectedEnd},category=${selectedCategory},type=${selectedType},search=${search})}" class="btn btn-outline-danger">Export PDF</a>
+	  </form>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-hover table-bordered align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Amount</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="expense : ${expenses}">
+              <td th:text="${expense.id}"></td>
+              <td th:text="${expense.title}"></td>
+              <td th:text="${expense.amount}"></td>
+              <td th:text="${expense.category}"></td>
+              <td th:text="${expense.type}"></td>
+              <td th:text="${expense.date}"></td>
+              <td th:text="${expense.description}"></td>
+              <td>
+                <a th:href="@{'/expenses/edit/' + ${expense.id}}" class="btn btn-sm btn-warning">Edit</a>
+                <a th:href="@{'/expenses/delete/' + ${expense.id}}" class="btn btn-sm btn-danger">Delete</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>&copy; 2025 SmartSpend. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
+
+
